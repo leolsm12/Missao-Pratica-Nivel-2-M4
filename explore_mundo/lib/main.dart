@@ -1,125 +1,96 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'classes/lugar.dart';
+import 'pages/home_page.dart';
+import 'pages/destinos_page.dart';
+import 'pages/pacotes_page.dart';
+import 'pages/contato_page.dart';
+import 'pages/sobre_page.dart';
+import 'package:flutter/widgets.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(TabBarDemo());
+  Future<List<Lugar>> fetchLugares() async {
+    final response =
+        await http.get(Uri.parse('http://192.168.100.114:8084/lugares'));
+    if (response.statusCode == 200) {
+      List<dynamic> lugaresJson = jsonDecode(response.body);
+      List<Lugar> lugares =
+          lugaresJson.map((json) => Lugar.fromJson(json)).toList();
+
+      // Adicione os prints para verificar os dados
+      lugares.forEach((lugar) {
+        print('Nome: ${lugar.nome}');
+        print('Localização: ${lugar.localizacao}');
+        print('Preço Mais Barato: ${lugar.preco}');
+        print('---------------------');
+      });
+
+      return lugares;
+    } else {
+      throw Exception('Failed to load lugares');
+    }
+  }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TabBarDemo extends StatelessWidget {
+  const TabBarDemo({Key? key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+      theme: ThemeData.dark().copyWith(
+        // Cor de fundo do aplicativo
+        scaffoldBackgroundColor: Colors.grey[900],
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+        // Cor de fundo da AppBar
+        appBarTheme: AppBarTheme(
+          color: Colors.grey[800],
+        ),
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+        // Cor do indicador da TabBar
+        tabBarTheme: TabBarTheme(
+          indicator: BoxDecoration(),
+        ),
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        // Cor do texto da AppBar
+        textTheme: TextTheme(
+          headline6: TextStyle(
+            color: Colors.white,
+            fontSize: 20.0, // Tamanho do texto
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      home: DefaultTabController(
+        length: 5,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: const TabBar(
+              tabs: [
+                Tab(icon: Icon(Icons.home)),
+                Tab(icon: Icon(Icons.explore)),
+                Tab(icon: Icon(Icons.card_travel)),
+                Tab(icon: Icon(Icons.contact_phone)),
+                Tab(icon: Icon(Icons.info_outline)),
+              ],
+            ),
+            title: const Text('Explore Mundo'),
+          ),
+          body: TabBarView(
+            children: [
+              HomePage(),
+              DestinosPage(),
+              PacotesPage(),
+              ContatoPage(),
+              SobreNosPage(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
